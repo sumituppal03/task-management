@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: task-management-api
+    env: java
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/*.jar"
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        fromDatabase: false
+        value: ThisIsCapstoneSecretKeyForTaskManagement12345NL
+      - key: JWT_EXPIRATION
+        value: 86400000
+
+databases:
+  - name: taskdb
+    databaseName: taskdb
+    user: taskuser
