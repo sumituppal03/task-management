@@ -1,0 +1,41 @@
+version: '3.8'
+services: 
+  mysql:
+  image: mysql:8.0
+
+  container_name: task-management-mysql
+
+  environment:
+    MYSQL_ROOT_PASSWORD: root123
+    MYSQL_DATABASE: taskdb
+
+    ports:
+    - "3306:3306"
+
+    environment:
+      # Database URL — use service name "mysql" not "localhost"!
+      # Inside Docker network, containers talk by service name
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/taskdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      JWT_SECRET: ThisIsCapstoneSecretKeyForTaskManagement12345
+      JWT_EXPIRATION: 86400000
+
+      depends_on:
+      mysql:
+        condition: service_healthy
+
+        networks:   
+        - task-network
+
+        restart: on-failure
+
+        volumes:
+  mysql_data:
+
+networks:
+  task-network:
+    driver: bridge

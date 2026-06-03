@@ -24,7 +24,7 @@ public class SwaggerConfig {
                     "pagination, filtering, search and statistics.")
         .contact(new Contact()
                     .name("Sumit Uppal")
-                    .email("sumituppal03@gmail.com")
+                    .email("sumituppal2004@gmail.com")
                     .url("https://github.com/sumituppal03"))
         .license(new License()
                     .name("MIT License")
