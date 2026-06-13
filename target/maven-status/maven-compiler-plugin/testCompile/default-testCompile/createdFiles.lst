@@ -1,1 +1,3 @@
 com\taskmanagement\taskmanagement\TaskManagementApplicationTests.class
+com\taskmanagement\taskmanagement\service\AuthServiceTest.class
+com\taskmanagement\taskmanagement\service\TaskServiceTest.class

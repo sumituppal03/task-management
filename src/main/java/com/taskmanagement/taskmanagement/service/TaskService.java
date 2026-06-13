@@ -1,5 +1,8 @@
 package com.taskmanagement.taskmanagement.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import com.taskmanagement.taskmanagement.dto.TaskRequest;
 import com.taskmanagement.taskmanagement.dto.TaskResponse;
 import com.taskmanagement.taskmanagement.exception.ResourceNotFoundException;
@@ -29,6 +32,10 @@ public class TaskService {
     @Autowired
     private UserRepository userRepository;
 
+    @Caching(evict={@CacheEvict(value="tasks",key="#email"),
+    @CacheEvict(value = "taskStats", key="#email")
+    })
+
     // CREATE task
     public TaskResponse createTask(TaskRequest request, String email) {
 
@@ -51,6 +58,8 @@ public class TaskService {
         return convertToResponse(saved);
     }
 
+    @Cacheable(value = "tasks", key = "#email + '_' + #page + '_' + #size + '_' + #sortBy")
+
     // GET all tasks for logged in user with pagination
     public Page<TaskResponse> getMyTasks(
             String email, int page, int size, String sortBy) {
@@ -62,9 +71,10 @@ public class TaskService {
         return taskRepository
                 .findByUserId(user.getId(), pageable)
                 .map(this::convertToResponse);
-    }
+    }    
 
     // GET tasks filtered by status
+    @Cacheable(value = "tasksByStatus",key = "#email + '_' + #status + '_' + #page + '_' + #size")
     public Page<TaskResponse> getTasksByStatus(
             String email, Task.Status status,
             int page, int size) {
@@ -80,6 +90,7 @@ public class TaskService {
     }
 
     // GET tasks filtered by priority
+    @Cacheable(value = "tasksByPriority",key = "#email + '_' + #priority + '_' + #page + '_' + #size")
     public Page<TaskResponse> getTasksByPriority(
             String email, Task.Priority priority,
             int page, int size) {
@@ -107,6 +118,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "task", key = "#taskId")
     // GET single task by id
     public TaskResponse getTaskById(Long taskId, String email) {
         Task task = taskRepository.findById(taskId)
@@ -116,6 +128,17 @@ public class TaskService {
         verifyTaskOwnership(task, email);
         return convertToResponse(task);
     }
+
+    @Caching(evict = {
+        @CacheEvict(value = "task", key = "#taskId"),
+        // Delete single task cache (data changed!)
+
+        @CacheEvict(value = "tasks", key = "#email"),
+        // Delete task list cache (list has changed!)
+
+        @CacheEvict(value = "taskStats", key = "#email")
+        // Delete stats cache (might have changed!)
+    })
 
     // UPDATE task
     public TaskResponse updateTask(
@@ -140,6 +163,11 @@ public class TaskService {
         return convertToResponse(updated);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "task", key = "#taskId"),
+        @CacheEvict(value = "tasks", key = "#email"),
+        @CacheEvict(value = "taskStats", key = "#email")
+    })
     // DELETE task
     public void deleteTask(Long taskId, String email) {
         Task task = taskRepository.findById(taskId)
@@ -161,6 +189,7 @@ public class TaskService {
     }
 
     // GET task statistics
+    @Cacheable(value = "taskStats", key = "#email")
     public Map<String, Long> getTaskStats(String email) {
         User user = getUserByEmail(email);
         Long userId = user.getId();
